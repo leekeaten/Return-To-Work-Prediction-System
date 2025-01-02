@@ -176,19 +176,6 @@ if predictBtnClick:
             5. **Base Value**: This is the starting point of the plot. It’s what the model would predict if it didn’t know anything else.
         """)
 
-    # # Generate the SHAP force plot using Matplotlib
-    # shap.force_plot(
-    #     explainer.expected_value[1],
-    #     shap_values[0][:, 1],
-    #     shortened_columns_df.iloc[0],
-    #     matplotlib=True
-    # )
-
-    # plt.gcf().set_size_inches(21, 4)  # Set figure size (width, height)
-    # plt.savefig("force_plot_fixed.png", bbox_inches="tight")
-    # plt.show()
-    # st.image("force_plot_fixed.png", use_container_width=True)
-
     # Waterfall plot
     st.write("### SHAP Waterfall Plot for the Prediction")
 
