@@ -7,4 +7,5 @@ shap==0.46.0
 scikit-learn==1.5.2
 streamlit-shap==1.0.2
 ipython==8.30.0
+reportlab
 
