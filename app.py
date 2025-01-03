@@ -179,14 +179,33 @@ if predictBtnClick:
     # Waterfall plot
     st.write("### SHAP Waterfall Plot for the Prediction")
 
-    water_lot = shap.waterfall_plot(
+    water_plot = shap.waterfall_plot(
         shap.Explanation(
             values=shap_values[0][:, 1],  
             base_values=explainer.expected_value[1], 
             data=original_values_df.iloc[0] 
         )
     )
-    st_shap(water_lot, height=550, width=1000)
+    st_shap(water_plot, height=550, width=1000)
+
+    # Generate the SHAP Waterfall Plot
+    fig, ax = plt.subplots(figsize=(10, 6))  # Adjust figure size for better visuals
+    shap.waterfall_plot(
+        shap.Explanation(
+            values=shap_values[0][:, 1],  
+            base_values=explainer.expected_value[1],  
+            data=original_values_df.iloc[0], 
+        ),
+        show=False 
+    )
+
+    # Display the plot in Streamlit
+    st.markdown('<div class="shap-container">', unsafe_allow_html=True)
+    st.write("### SHAP Waterfall Plot for the Prediction")
+    st.pyplot(fig) 
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
 
 
 
