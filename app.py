@@ -8,6 +8,11 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 from PIL import Image
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Image as RLImage
+import os
 
 st.set_page_config(layout="wide")
 # Load the saved model and scaler
@@ -130,6 +135,79 @@ with col2:
   # Button to make predictions
   predictBtnClick = st.button('Predict')
 
+# Function Generate PDF
+def generate_pdf(input_data, force_plot_path, waterfall_plot_path, prediction, prediction_probabilities):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    page_height = letter[1]  # Page height in points
+    y_position = page_height - 50  # Start near the top of the page
+
+    # Add Title
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(190, y_position, "Return to Work Prediction Report")
+    y_position -= 40
+
+    # Add Input Data
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y_position, "Patient Information")
+    y_position -= 20
+    c.setFont("Helvetica", 12)
+    for key, value in input_data.items():
+        if y_position < 100:  # Create a new page if space is insufficient
+            c.showPage()
+            y_position = page_height - 50
+        c.drawString(50, y_position, f"{key}: {value}")
+        y_position -= 20
+
+    y_position -= 30
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y_position, "Prediction Results:")
+    y_position -= 20
+    c.setFont("Helvetica", 12)
+    c.drawString(50, y_position, f"Prediction: {'Likely to Return to Work' if prediction == 1 else 'Unlikely to Return to Work'}")
+    y_position -= 20
+    c.drawString(50, y_position, f"Probability of Return to Work: {prediction_probabilities[1]:.2f}")
+    y_position -= 20
+    c.drawString(50, y_position, f"Probability of Not Returning to Work: {prediction_probabilities[0]:.2f}")
+
+    # Add SHAP Force Plot
+    y_position -= 50
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y_position, "SHAP Force Plot:")
+    y_position -= 10
+    c.drawImage(force_plot_path, 50, y_position - 200, width=500, height=200)
+    y_position -= 250
+
+    # Add SHAP Waterfall Plot
+    if y_position < 250:  # Check if space is sufficient for the graph
+        c.showPage()
+        y_position = page_height - 50
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y_position, "SHAP Waterfall Plot:")
+    y_position -= 10
+    c.drawImage(waterfall_plot_path, 50, y_position - 200, width=500, height=200)
+
+    # Save the PDF
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+
+# Define input data for the report
+input_data = {
+    "Age": age,
+    "Health Funding": health_funding,
+    "Risk Factors: Hypertension": risk_factors_hypertension,
+    "Total Risk Factors": total_risk_factors,
+    "Anxiety Scores": anxiety_scores,
+    "Depression Scores": depression_scores,
+    "Duration Between Ward Enrollment (days)": duration_between_ward_enrollment,
+    "Duration of CR (days)": duration_cr,
+    "Exercise Frequency (per week)": exercise_frequency_sessions_week,
+    "Pre RTW": "Yes" if pre_rtw else "No",
+}
+
+
 if predictBtnClick:
     # Make prediction using the loaded model
     prediction_probabilities = model.predict_proba(input_data_scaled)[0]
@@ -152,19 +230,20 @@ if predictBtnClick:
     shap_values = explainer.shap_values(input_data_scaled_df)
 
     # Display SHAP Force Plot for the prediction
-    st.write("### SHAP Force Plot for the Prediction")
+    st.write("### Local Explanability (SHAP Force Plot)")
 
-    # Force plot for class 1 (Return to Work)
-    force_plot = shap.force_plot(
-        explainer.expected_value[1], # Baseline value for class 1 (Return to Work)
-        shap_values[0][:, 1],  # SHAP values for class 1
-        shortened_columns_df.iloc[0],  # Original input values (non-scaled)
-        # original_values_df.iloc[0],
+    # Generate the SHAP force plot using Matplotlib
+    shap.force_plot(
+        explainer.expected_value[1],
+        shap_values[0][:, 1],
+        shortened_columns_df.iloc[0],
+        matplotlib=True
     )
-       
-    st_shap(force_plot, height=200)
 
-    shap.save_html("force_plot.html", force_plot)
+    plt.gcf().set_size_inches(19, 5)  # Set figure size (width, height)
+    plt.savefig("force_plot_fixed.png", bbox_inches="tight")
+    plt.show()
+    st.image("force_plot_fixed.png", use_container_width=True)
 
     with st.expander("SHAP EXPLANATION USER GUIDE (Click to expand)"):
         st.markdown("""
@@ -175,18 +254,6 @@ if predictBtnClick:
             4. **End Point**: This is the final prediction after considering all the patient information.
             5. **Base Value**: This is the starting point of the plot. It’s what the model would predict if it didn’t know anything else.
         """)
-
-    # Waterfall plot
-    st.write("### SHAP Waterfall Plot for the Prediction")
-
-    water_plot = shap.waterfall_plot(
-        shap.Explanation(
-            values=shap_values[0][:, 1],  
-            base_values=explainer.expected_value[1], 
-            data=original_values_df.iloc[0] 
-        )
-    )
-    st_shap(water_plot, height=550, width=1000)
 
     # Generate the SHAP Waterfall Plot
     fig, ax = plt.subplots(figsize=(10, 6))  # Adjust figure size for better visuals
@@ -201,37 +268,25 @@ if predictBtnClick:
 
     # Display the plot in Streamlit
     st.markdown('<div class="shap-container">', unsafe_allow_html=True)
-    st.write("### SHAP Waterfall Plot for the Prediction")
+    st.write("### Local Explanability (SHAP Waterfall Plot)")
     st.pyplot(fig) 
     st.markdown('</div>', unsafe_allow_html=True)
 
+    plt.gcf().set_size_inches(9, 4)  # Set figure size (width, height)
+    plt.savefig("waterfall_plot.png")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
+    # Add Download Button within the prediction block
+    st.download_button(
+        label="Download Report as PDF",
+        data=generate_pdf(
+            input_data=input_data,
+            force_plot_path="force_plot_fixed.png",
+            waterfall_plot_path="waterfall_plot.png",
+            prediction=prediction,
+            prediction_probabilities=prediction_probabilities,
+        ),
+        file_name="Return_to_Work_Prediction_Report.pdf",
+        mime="application/pdf",
+    )
 
 
