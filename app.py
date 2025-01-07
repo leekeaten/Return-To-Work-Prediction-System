@@ -256,7 +256,7 @@ if predictBtnClick:
         """)
 
     # Generate the SHAP Waterfall Plot
-    fig, ax = plt.subplots(figsize=(10, 6))  # Adjust figure size for better visuals
+    fig, ax = plt.subplots(figsize=(14, 6))  # Adjust figure size for better visuals
     shap.waterfall_plot(
         shap.Explanation(
             values=shap_values[0][:, 1],  
@@ -269,6 +269,7 @@ if predictBtnClick:
     # Display the plot in Streamlit
     st.markdown('<div class="shap-container">', unsafe_allow_html=True)
     st.write("### Local Explanability (SHAP Waterfall Plot)")
+    fig.set_size_inches(10.5, 4)
     st.pyplot(fig) 
     st.markdown('</div>', unsafe_allow_html=True)
 
