@@ -272,7 +272,7 @@ if predictBtnClick:
     st.pyplot(fig) 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    plt.gcf().set_size_inches(9, 4)  # Set figure size (width, height)
+    plt.gcf().set_size_inches(10.5, 4)  # Set figure size (width, height)
     plt.savefig("waterfall_plot.png")
 
     # Add Download Button within the prediction block
