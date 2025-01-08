@@ -229,17 +229,16 @@ if predictBtnClick:
 
     shap_values = explainer.shap_values(input_data_scaled_df)
 
-    # Display SHAP Force Plot for the prediction
-    st.write("### Local Explanability (SHAP Force Plot)")
-
     # Generate the SHAP force plot using Matplotlib
     shap.force_plot(
         explainer.expected_value[1],
         shap_values[0][:, 1],
         shortened_columns_df.iloc[0],
-        matplotlib=True
+        matplotlib=True,
     )
 
+    # Display SHAP Force Plot for the prediction
+    st.write("### Local Explanability (SHAP Force Plot)")
     plt.gcf().set_size_inches(19, 5)  # Set figure size (width, height)
     plt.savefig("force_plot_fixed.png", bbox_inches="tight")
     plt.show()
