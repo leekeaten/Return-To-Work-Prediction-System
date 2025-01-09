@@ -45,8 +45,8 @@ with col1:
     st.markdown("### **🏥Medical History**")
     risk_factors_hypertension = st.radio('Risk Factors: Hypertension', ['Yes', 'No'])
     total_risk_factors = st.number_input('Total Risk Factors (Hypertension, DM Type 2, High Lipid Profile)', min_value=0, max_value=3, value=1)
-    anxiety_scores = st.number_input('Anxiety Scores', min_value=0, max_value=10, value=5)
-    depression_scores = st.number_input('Depression Scores', min_value=0, max_value=10, value=5)
+    anxiety_scores = st.number_input('Anxiety Scores', min_value=0, max_value=5, value=3)
+    depression_scores = st.number_input('Depression Scores', min_value=0, max_value=5, value=3)
 
 with col2: 
   # CR Status
