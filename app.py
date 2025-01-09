@@ -52,8 +52,8 @@ with col2:
   # CR Status
   st.markdown("### **💪CR Status**")
   duration_between_ward_enrollment = st.number_input('Duration Between Ward Enrollment (days)', min_value=5, max_value=200, value=100)
-  duration_cr = st.number_input('Duration of CR (days)', min_value=0, max_value=300, value=100)
-  exercise_frequency_sessions_week = st.number_input('Exercise Sessions (per week)', min_value=0, max_value=7, value=3)
+  duration_cr = st.number_input('Duration of CR (days)', min_value=0, max_value=180, value=60)
+  exercise_frequency_sessions_week = st.number_input('Exercise Sessions (per week)', min_value=1, max_value=7, value=3)
   # Pre-CR Data
   st.markdown("### **⏳Pre-CR**")
   pre_rtw = st.radio('Pre RTW', ['Yes', 'No'])
